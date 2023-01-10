@@ -1,0 +1,22 @@
+{
+	"name": "esbuild-plugin-noexternal",
+	"version": "0.1.0",
+	"description": "",
+	"main": "dist/index.cjs",
+	"module": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"build": "tsup",
+		"watch": "tsup --watch"
+	},
+	"devDependencies": {
+		"tsup": "^6.5.0"
+	},
+	"keywords": [],
+	"author": "Mayank",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/mayank99/esbuild-plugin-noexternal.git"
+	}
+}

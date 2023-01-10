@@ -1,7 +1,7 @@
 {
 	"name": "esbuild-plugin-noexternal",
 	"type": "module",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Externalize all packages except the ones passed to this plugin",
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
@@ -13,6 +13,9 @@
 			"require": "./dist/index.cjs"
 		}
 	},
+	"files": [
+		"dist"
+	],
 	"scripts": {
 		"build": "tsup index.ts --format esm,cjs --dts",
 		"watch": "tsup --watch index.ts --format esm,cjs --dts"

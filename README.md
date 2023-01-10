@@ -3,7 +3,7 @@
 Will mark all npm packages as "external", except the ones passed to this plugin. Kinda like Vite's [`noExternal`](https://vitejs.dev/config/ssr-options.html#ssr-noexternal) option.
 
 ```
-npm i esbuild-plugin-noexternal
+npm i -D esbuild-plugin-noexternal
 ```
 
 ```js

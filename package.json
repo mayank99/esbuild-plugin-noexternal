@@ -1,7 +1,7 @@
 {
 	"name": "esbuild-plugin-noexternal",
 	"type": "module",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "Externalize all packages except the ones passed to this plugin",
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",

@@ -8,6 +8,7 @@ export default function externalizeAllPackagesExcept(noExternals: string[]) {
 				build.onResolve({ filter: /(.*)/ }, (args) => {
 					if (
 						args.kind === 'import-statement' &&
+						!args.path.startsWith('.') &&
 						!noExternals.includes(args.path.split('/')[0])
 					) {
 						return { path: args.path, external: true };

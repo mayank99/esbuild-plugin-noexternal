@@ -9,17 +9,15 @@ export default function externalizeAllPackagesExcept(noExternals: string[]) {
 	return <Plugin>{
 		name: 'noExternal-plugin',
 		setup(build) {
-			if (noExternals.length > 0) {
-				build.onResolve({ filter: /(.*)/ }, (args) => {
-					if (args.kind !== 'import-statement' || args.path.startsWith('.')) {
-						return;
-					}
+			build.onResolve({ filter: /(.*)/ }, (args) => {
+				if (args.kind !== 'import-statement' || args.path.startsWith('.')) {
+					return;
+				}
 
-					if (!noExternals.includes(getPackageName(args.path))) {
-						return { path: args.path, external: true };
-					}
-				});
-			}
+				if (!noExternals.includes(getPackageName(args.path))) {
+					return { path: args.path, external: true };
+				}
+			});
 		},
 	};
 }

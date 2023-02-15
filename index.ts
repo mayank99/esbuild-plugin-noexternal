@@ -1,4 +1,7 @@
 import type { Plugin } from 'esbuild';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
 
 export default function externalizeAllPackagesExcept(noExternals: string[]) {
 	const getPackageName = (fullPath: string) => {
@@ -10,12 +13,27 @@ export default function externalizeAllPackagesExcept(noExternals: string[]) {
 		name: 'noExternal-plugin',
 		setup(build) {
 			build.onResolve({ filter: /(.*)/ }, (args) => {
-				if (args.kind !== 'import-statement' || args.path.startsWith('.')) {
+				if (
+					args.kind !== 'import-statement' ||
+					args.path.startsWith('.') ||
+					args.path.startsWith('@/')
+				) {
 					return;
 				}
 
-				if (!noExternals.includes(getPackageName(args.path))) {
-					return { path: args.path, external: true };
+				if (args.path) {
+					const maybePackageName = getPackageName(args.path);
+					if (!noExternals.includes(maybePackageName)) {
+						try {
+							require.resolve(maybePackageName);
+						} catch {
+							// if resolve fails, then it's not a real package.
+							// could be a tsconfig path, so we won't externalize it
+							return;
+						}
+
+						return { path: args.path, external: true };
+					}
 				}
 			});
 		},

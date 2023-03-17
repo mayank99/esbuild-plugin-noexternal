@@ -1,5 +1,6 @@
 import type { Plugin } from 'esbuild';
 import { createRequire } from 'node:module';
+import { versions } from 'node:process';
 
 const require = createRequire(import.meta.url);
 
@@ -25,7 +26,7 @@ export default function externalizeAllPackagesExcept(noExternals: string[]) {
 					const maybePackageName = getPackageName(args.path);
 					if (!noExternals.includes(maybePackageName)) {
 						try {
-							require.resolve(maybePackageName);
+							resolvePackageName(maybePackageName, args);
 						} catch {
 							// if resolve fails, then it's not a real package.
 							// could be a tsconfig path, so we won't externalize it
@@ -38,4 +39,30 @@ export default function externalizeAllPackagesExcept(noExternals: string[]) {
 			});
 		},
 	};
+}
+
+function resolvePackageName(maybePackageName: string, args: { path: string; resolveDir: string }) {
+	// support pnp and yarn berry
+	if (versions.pnp) {
+		const pnpApi = require("pnpapi");
+		for (const locator of pnpApi.getDependencyTreeRoots()) {
+			const locPackage = pnpApi.getPackageInformation(locator);
+			// could be naive implementation not strong checking
+			if (locPackage.packageLocation.startsWith(args.resolveDir)) {
+				const pkg = locPackage.packageDependencies.get(maybePackageName);
+				if (pkg) {
+					return { path: args.path, external: true };
+				} else {
+					throw new Error("not found");
+				}
+			}
+		}
+	} else {
+		// probably this don't need to be resolved
+		// as it may cause to resolve to transitive deps which is mistake
+		// possible check if package.json includes this dependency may work too
+
+		require.resolve(maybePackageName);
+	}
+
 }

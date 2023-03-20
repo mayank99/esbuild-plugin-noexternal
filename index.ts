@@ -2,7 +2,9 @@ import type { Plugin } from 'esbuild';
 import { createRequire } from 'node:module';
 import { versions } from 'node:process';
 
-const require = createRequire(import.meta.url);
+if (typeof require === 'undefined') {
+	require = createRequire(import.meta.url);
+}
 
 export default function externalizeAllPackagesExcept(noExternals: string[]) {
 	const getPackageName = (fullPath: string) => {
@@ -48,23 +50,27 @@ function resolvePackageName(
 	{ resolveDir }: { resolveDir: string }
 ) {
 	// support pnp and yarn berry
-	if (versions.pnp) {
-		const pnpApi = require('pnpapi');
-		for (const locator of pnpApi.getDependencyTreeRoots()) {
-			const locPackage = pnpApi.getPackageInformation(locator);
-			// could be naive implementation not strong checking
-			if (locPackage.packageLocation.startsWith(resolveDir)) {
-				const pkg = locPackage.packageDependencies.get(maybePackageName);
-				if (!pkg) {
-					throw new Error('not found');
+	try {
+		if (versions.pnp) {
+			const pnpApi = require('pnpapi');
+			for (const locator of pnpApi.getDependencyTreeRoots()) {
+				const locPackage = pnpApi.getPackageInformation(locator);
+				// could be naive implementation not strong checking
+				if (locPackage.packageLocation.startsWith(resolveDir)) {
+					const pkg = locPackage.packageDependencies.get(maybePackageName);
+					if (!pkg) {
+						throw new Error('not found');
+					}
 				}
 			}
-		}
-	} else {
-		// probably this don't need to be resolved
-		// as it may cause to resolve to transitive deps which is mistake
-		// possible check if package.json includes this dependency may work too
+		} else {
+			// probably this don't need to be resolved
+			// as it may cause to resolve to transitive deps which is mistake
+			// possible check if package.json includes this dependency may work too
 
-		require.resolve(maybePackageName);
+			require.resolve(maybePackageName);
+		}
+	} catch (err) {
+		throw err;
 	}
 }

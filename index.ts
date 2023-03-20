@@ -2,10 +2,6 @@ import type { Plugin } from 'esbuild';
 import { createRequire } from 'node:module';
 import { versions } from 'node:process';
 
-if (typeof require === 'undefined') {
-	require = createRequire(import.meta.url);
-}
-
 export default function externalizeAllPackagesExcept(noExternals: string[]) {
 	const getPackageName = (fullPath: string) => {
 		const splits = fullPath.split('/');
@@ -52,7 +48,13 @@ function resolvePackageName(
 	// support pnp and yarn berry
 	try {
 		if (versions.pnp) {
-			const pnpApi = require('pnpapi');
+			const pnpApi = (() => {
+				try {
+					return require('pnpapi');
+				} catch {
+					return createRequire(import.meta.url)('pnpapi');
+				}
+			})();
 			for (const locator of pnpApi.getDependencyTreeRoots()) {
 				const locPackage = pnpApi.getPackageInformation(locator);
 				// could be naive implementation not strong checking
@@ -68,7 +70,11 @@ function resolvePackageName(
 			// as it may cause to resolve to transitive deps which is mistake
 			// possible check if package.json includes this dependency may work too
 
-			require.resolve(maybePackageName);
+			try {
+				createRequire(import.meta.url).resolve(maybePackageName);
+			} catch {
+				require.resolve(maybePackageName);
+			}
 		}
 	} catch (err) {
 		throw err;
